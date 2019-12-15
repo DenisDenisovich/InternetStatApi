@@ -47,11 +47,11 @@ object Db {
 
     fun addUser(user: String) {
         val existedUserID = try {
-            transaction { Users.select { Users.userId eq user } }.single()[Users.userId]
+            Users.select { Users.userId eq user }.single()[Users.userId]
         } catch (e: Exception) {
             null
         }
-        if (existedUserID != null) {
+        if (existedUserID == null) {
             Users.insert {
                 it[Users.userId] = user
             }
@@ -60,9 +60,7 @@ object Db {
 
     fun getUsers(): ArrayList<String> {
         val users = arrayListOf<String>()
-        transaction {
-            Users.selectAll()
-        }.forEach {
+        Users.selectAll().forEach {
             users.add(it[Users.userId])
         }
         return users
