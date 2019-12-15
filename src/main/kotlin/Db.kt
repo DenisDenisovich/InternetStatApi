@@ -1,7 +1,6 @@
-package com.example.network.statistic
+package com.example.network.statistic.main.kotlin
 
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.lang.Exception
 import java.lang.StringBuilder
 
@@ -40,7 +39,7 @@ object Db {
 
     fun addNetworkData(user: String, data: String) {
         NetworkData.insert {
-            it[NetworkData.userId] = user
+            it[userId] = user
             it[NetworkData.data] = data
         }
     }
@@ -53,7 +52,7 @@ object Db {
         }
         if (existedUserID == null) {
             Users.insert {
-                it[Users.userId] = user
+                it[userId] = user
             }
         }
     }

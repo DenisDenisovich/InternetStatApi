@@ -1,22 +1,11 @@
-package com.example.network.statistic
+package com.example.network.statistic.main.kotlin
 
 import io.ktor.application.*
 import io.ktor.response.*
-import io.ktor.request.*
 import io.ktor.routing.*
 import io.ktor.http.*
-import io.ktor.html.*
-import kotlinx.html.*
-import kotlinx.css.*
-import io.ktor.client.*
-import io.ktor.client.engine.apache.*
-import io.ktor.client.request.request
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.lang.StringBuilder
 
 fun main(args: Array<String>) {
