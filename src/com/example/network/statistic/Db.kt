@@ -1,4 +1,4 @@
-package com.example.network.statistic.main.kotlin.com.example.network.statistic
+package com.example.network.statistic
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -8,7 +8,8 @@ import java.lang.StringBuilder
 object Db {
 
     init {
-        Database.connect("jdbc:sqlite:/data/data.db", "org.sqlite.JDBC")
+        Database.connect("jdbc:postgresql://shefer.space/vdenisov_diplom", driver = "org.postgresql.Driver",
+            user = "vdenisov_diplom", password = "Js!t7B8AG#CM5v9&")
     }
 
     object Users : Table() {
