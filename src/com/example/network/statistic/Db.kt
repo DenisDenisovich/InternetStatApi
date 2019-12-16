@@ -1,6 +1,7 @@
-package com.example.network.statistic.main.kotlin
+package com.example.network.statistic.main.kotlin.com.example.network.statistic
 
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.lang.Exception
 import java.lang.StringBuilder
 
@@ -46,7 +47,9 @@ object Db {
 
     fun addUser(user: String) {
         val existedUserID = try {
-            Users.select { Users.userId eq user }.single()[Users.userId]
+            transaction { Users.select { Users.userId eq user }.single() }.getOrNull(
+                Users.userId
+            )
         } catch (e: Exception) {
             null
         }
