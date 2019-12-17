@@ -12,6 +12,7 @@ import io.ktor.jackson.*
 import io.ktor.features.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
+import java.lang.StringBuilder
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -28,9 +29,20 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+        get("/add") {
+            val user = "user${(Math.random() * 1000).toInt()}"
+            Db.addUser(user)
+            call.respondText("HELLO, $user!", contentType = ContentType.Text.Plain)
         }
+
+        get("/get") {
+            val sb = StringBuilder()
+            Db.getUsers().forEach {
+                sb.appendln(it)
+            }
+            call.respondText(sb.toString(), contentType = ContentType.Text.Plain)
+        }
+
 
         get("/html-dsl") {
             call.respondHtml {

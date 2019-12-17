@@ -55,16 +55,20 @@ object Db {
             null
         }
         if (existedUserID == null) {
-            Users.insert {
-                it[userId] = user
+            transaction {
+                Users.insert {
+                    it[userId] = user
+                }
             }
         }
     }
 
     fun getUsers(): ArrayList<String> {
         val users = arrayListOf<String>()
-        Users.selectAll().forEach {
-            users.add(it[Users.userId])
+        transaction {
+            Users.selectAll().forEach {
+                users.add(it[Users.userId])
+            }
         }
         return users
     }
