@@ -29,13 +29,20 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        get("/add") {
-            val user = "user${(Math.random() * 1000).toInt()}"
-            Db.addUser(user)
-            call.respondText("HELLO, $user!", contentType = ContentType.Text.Plain)
+        put("user/add") {
+            val parameters = call.request.queryParameters
+            val id = parameters["name"]
+            val user = "user$id"
+            val isExisted = !Db.addUser(user)
+            val existText = if(isExisted) {
+                "$user is already exist"
+            } else {
+                "$user is added"
+            }
+            call.respondText("HELLO, $user!\n$existText", contentType = ContentType.Text.Plain)
         }
 
-        get("/get") {
+        get("user/get") {
             val sb = StringBuilder()
             Db.getUsers().forEach {
                 sb.appendln(it)

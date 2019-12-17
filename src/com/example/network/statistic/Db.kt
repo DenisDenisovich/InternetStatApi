@@ -13,20 +13,26 @@ object Db {
     }
 
     object Users : Table() {
-        val id = varchar("id", 50).autoIncrement().primaryKey() // Column<String>
+        val id = integer("id").autoIncrement().primaryKey() // Column<String>
         val userId = varchar("user_id", 50)
     }
 
     object NetworkData : Table() {
-        val id = varchar("id", 50).autoIncrement().primaryKey() // Column<String>
+        val id = integer("id").autoIncrement().primaryKey() // Column<String>
         val userId = varchar("user_id", 50)
         val data = varchar("data", 300)
     }
 
     object UserApplications : Table() {
-        val id = varchar("id", 50).autoIncrement().primaryKey() // Column<String>
+        val id = integer("id").autoIncrement().primaryKey() // Column<String>
         val userId = varchar("user_id", 50)
         val apps = text("apps")
+    }
+
+    init {
+        transaction {
+            SchemaUtils.create (NetworkData, Users, UserApplications)
+        }
     }
 
     fun addApps(user: String, apps: ArrayList<Pair<Int, String>>) {
@@ -46,7 +52,10 @@ object Db {
         }
     }
 
-    fun addUser(user: String) {
+    /**
+     * @return false, if already exist
+     * */
+    fun addUser(user: String): Boolean {
         val existedUserID = try {
             transaction { Users.select { Users.userId eq user }.single() }.getOrNull(
                 Users.userId
@@ -61,6 +70,7 @@ object Db {
                 }
             }
         }
+        return existedUserID == null
     }
 
     fun getUsers(): ArrayList<String> {
