@@ -1,26 +1,27 @@
 package com.example.network.statistic
 
+import com.example.network.statistic.models.UserApplicationResponse
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.http.*
 import io.ktor.html.*
 import kotlinx.html.*
-import kotlinx.css.*
 import com.fasterxml.jackson.databind.*
+import com.google.gson.Gson
 import io.ktor.jackson.*
 import io.ktor.features.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.request.receiveText
 import java.lang.Exception
-import java.lang.StringBuilder
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+    val gson = Gson()
     install(ContentNegotiation) {
         jackson {
             enable(SerializationFeature.INDENT_OUTPUT)
@@ -36,11 +37,11 @@ fun Application.module(testing: Boolean = false) {
                 val parameters = call.request.queryParameters
                 val id = parameters["name"]
                 val user = "user$id"
-                val isExisted = !Db.addUser(user)
-                val existText = if (isExisted) {
-                    "$user is already exist"
-                } else {
+                val isAdded = Db.addUser(user)
+                val existText = if (isAdded) {
                     "$user is added"
+                } else {
+                    "$user is already exist"
                 }
                 call.respondText(
                     "HELLO, $user!\n$existText",
@@ -59,12 +60,8 @@ fun Application.module(testing: Boolean = false) {
 
         get("user/get") {
             try {
-                val sb = StringBuilder()
-                Db.getUsers().forEach {
-                    sb.appendln(it)
-                }
                 call.respondText(
-                    sb.toString(),
+                    gson.toJson(Db.getUsers()),
                     contentType = ContentType.Text.Plain,
                     status = HttpStatusCode.OK
                 )
@@ -80,10 +77,9 @@ fun Application.module(testing: Boolean = false) {
 
         put("user/apps") {
             try {
-                val text = call.receiveText().split("|")
-                val user = text[0]
-                val apps = text[1]
-                Db.addApps(user, getApps(apps))
+                val text = call.receiveText()
+                val userApps = gson.fromJson(text, UserApplicationResponse::class.java)
+                Db.addApps(userApps)
                 call.respondText(
                     "Success",
                     contentType = ContentType.Text.Plain,
@@ -101,11 +97,10 @@ fun Application.module(testing: Boolean = false) {
 
         get("user/apps") {
             try {
-                val parameters = call.request.queryParameters
-                parameters["name"]?.let { userId ->
+                call.request.queryParameters["name"]?.let { userId ->
                     val users = Db.getAppsForUser(userId)
                     call.respondText(
-                        users.toString(),
+                        gson.toJson(users),
                         contentType = ContentType.Text.Plain,
                         status = HttpStatusCode.OK
                     )
@@ -119,7 +114,6 @@ fun Application.module(testing: Boolean = false) {
                 )
             }
         }
-
 
         get("/html-dsl") {
             call.respondHtml {

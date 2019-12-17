@@ -1,5 +1,9 @@
 package com.example.network.statistic
 
+import com.example.network.statistic.models.Application
+import com.example.network.statistic.models.UserApplicationResponse
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.lang.Exception
@@ -8,6 +12,7 @@ import javax.jws.soap.SOAPBinding
 
 object Db {
 
+    private val gson = Gson()
     init {
         Database.connect(
             "jdbc:postgresql://shefer.space/vdenisov_diplom", driver = "org.postgresql.Driver",
@@ -36,36 +41,31 @@ object Db {
         }
     }
 
-    fun addApps(user: String, apps: ArrayList<Pair<Int, String>>) {
-        checkUserIsExist(user)
-        // parse data
-        val sb = StringBuilder()
-        apps.forEach { (id, packageName) ->
-            sb.append("$id-$packageName,")
-        }
-        val appsString = sb.toString()
+    fun addApps(userApps: UserApplicationResponse) {
+        checkUserIsExist(userApps.user)
+        val appsString = gson.toJson(userApps.apps)
         // check update or insert operation
         val existedUserID = transaction {
             UserApplications
-                .select { UserApplications.userId eq user }
+                .select { UserApplications.userId eq userApps.user }
                 .singleOrNull()
         }?.getOrNull(UserApplications.userId)
         // add data to db
         if (existedUserID == null) {
             transaction {
                 UserApplications.insert {
-                    it[UserApplications.userId] = user
-                    it[UserApplications.apps] = appsString
+                    it[userId] = userApps.user
+                    it[apps] = appsString
                 }
             }
         } else {
             transaction {
-                UserApplications.update({ UserApplications.userId eq user }) { it[UserApplications.apps] = appsString }
+                UserApplications.update({ UserApplications.userId eq userApps.user }) { it[apps] = appsString }
             }
         }
     }
 
-    fun getAppsForUser(user: String): ArrayList<Pair<Int, String>> {
+    fun getAppsForUser(user: String): ArrayList<Application> {
         checkUserIsExist(user)
         val apps = transaction {
             UserApplications
@@ -74,7 +74,7 @@ object Db {
                 ?.getOrNull(UserApplications.apps)
         }
         return if (apps != null) {
-            getApps(apps)
+            gson.fromJson<ArrayList<Application>>(apps)
         } else {
             ArrayList()
         }
@@ -123,4 +123,6 @@ object Db {
                 .singleOrNull()
         }?.getOrNull(Users.userId) ?: throw Exception(USER_DOESNT_EXIST)
     }
+
+    inline fun <reified T> Gson.fromJson(json: String) = this.fromJson<T>(json, object: TypeToken<T>() {}.type)
 }
