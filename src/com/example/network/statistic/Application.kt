@@ -12,6 +12,8 @@ import io.ktor.jackson.*
 import io.ktor.features.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
+import io.ktor.request.receiveText
+import java.lang.Exception
 import java.lang.StringBuilder
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -30,24 +32,92 @@ fun Application.module(testing: Boolean = false) {
 
     routing {
         put("user/add") {
-            val parameters = call.request.queryParameters
-            val id = parameters["name"]
-            val user = "user$id"
-            val isExisted = !Db.addUser(user)
-            val existText = if(isExisted) {
-                "$user is already exist"
-            } else {
-                "$user is added"
+            try {
+                val parameters = call.request.queryParameters
+                val id = parameters["name"]
+                val user = "user$id"
+                val isExisted = !Db.addUser(user)
+                val existText = if (isExisted) {
+                    "$user is already exist"
+                } else {
+                    "$user is added"
+                }
+                call.respondText(
+                    "HELLO, $user!\n$existText",
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.OK
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respondText(
+                    "error",
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.ExpectationFailed
+                )
             }
-            call.respondText("HELLO, $user!\n$existText", contentType = ContentType.Text.Plain)
         }
 
         get("user/get") {
-            val sb = StringBuilder()
-            Db.getUsers().forEach {
-                sb.appendln(it)
+            try {
+                val sb = StringBuilder()
+                Db.getUsers().forEach {
+                    sb.appendln(it)
+                }
+                call.respondText(
+                    sb.toString(),
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.OK
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respondText(
+                    "error",
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.ExpectationFailed
+                )
             }
-            call.respondText(sb.toString(), contentType = ContentType.Text.Plain)
+        }
+
+        put("user/apps") {
+            try {
+                val text = call.receiveText().split("|")
+                val user = text[0]
+                val apps = text[1]
+                Db.addApps(user, getApps(apps))
+                call.respondText(
+                    "Success",
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.OK
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respondText(
+                    e.getError(),
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.ExpectationFailed
+                )
+            }
+        }
+
+        get("user/apps") {
+            try {
+                val parameters = call.request.queryParameters
+                parameters["name"]?.let { userId ->
+                    val users = Db.getAppsForUser(userId)
+                    call.respondText(
+                        users.toString(),
+                        contentType = ContentType.Text.Plain,
+                        status = HttpStatusCode.OK
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respondText(
+                    e.getError(),
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.ExpectationFailed
+                )
+            }
         }
 
 
@@ -64,36 +134,11 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        get("/styles.css") {
-            call.respondCss {
-                body {
-                    backgroundColor = Color.red
-                }
-                p {
-                    fontSize = 2.em
-                }
-                rule("p.myclass") {
-                    color = Color.blue
-                }
-            }
-        }
-
         get("/json/jackson") {
             call.respond(mapOf("hello" to "world"))
         }
     }
 }
 
-fun FlowOrMetaDataContent.styleCss(builder: CSSBuilder.() -> Unit) {
-    style(type = ContentType.Text.CSS.toString()) {
-        +CSSBuilder().apply(builder).toString()
-    }
-}
+fun Exception.getError(): String = if (message == USER_DOESNT_EXIST) USER_DOESNT_EXIST else "error"
 
-fun CommonAttributeGroupFacade.style(builder: CSSBuilder.() -> Unit) {
-    this.style = CSSBuilder().apply(builder).toString().trim()
-}
-
-suspend inline fun ApplicationCall.respondCss(builder: CSSBuilder.() -> Unit) {
-    this.respondText(CSSBuilder().apply(builder).toString(), ContentType.Text.CSS)
-}

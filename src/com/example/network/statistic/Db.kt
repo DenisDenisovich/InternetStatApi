@@ -4,17 +4,19 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.lang.Exception
 import java.lang.StringBuilder
+import javax.jws.soap.SOAPBinding
 
 object Db {
 
     init {
-        Database.connect("jdbc:postgresql://shefer.space/vdenisov_diplom", driver = "org.postgresql.Driver",
-            user = "vdenisov_diplom", password = "Js!t7B8AG#CM5v9&")
+        Database.connect(
+            "jdbc:postgresql://shefer.space/vdenisov_diplom", driver = "org.postgresql.Driver",
+            user = "vdenisov_diplom", password = "Js!t7B8AG#CM5v9&"
+        )
     }
 
     object Users : Table() {
-        val id = integer("id").autoIncrement().primaryKey() // Column<String>
-        val userId = varchar("user_id", 50)
+        val userId = varchar("user_id", 50).primaryKey()
     }
 
     object NetworkData : Table() {
@@ -24,24 +26,57 @@ object Db {
     }
 
     object UserApplications : Table() {
-        val id = integer("id").autoIncrement().primaryKey() // Column<String>
-        val userId = varchar("user_id", 50)
+        val userId = varchar("user_id", 50).primaryKey()
         val apps = text("apps")
     }
 
     init {
         transaction {
-            SchemaUtils.create (NetworkData, Users, UserApplications)
+            SchemaUtils.create(NetworkData, Users, UserApplications)
         }
     }
 
     fun addApps(user: String, apps: ArrayList<Pair<Int, String>>) {
-        UserApplications.update({ UserApplications.userId eq user }) {
-            val sb = StringBuilder()
-            apps.forEach {
-                sb.append("{${it.first}, ${it.second}}, ")
+        checkUserIsExist(user)
+        // parse data
+        val sb = StringBuilder()
+        apps.forEach { (id, packageName) ->
+            sb.append("$id-$packageName,")
+        }
+        val appsString = sb.toString()
+        // check update or insert operation
+        val existedUserID = transaction {
+            UserApplications
+                .select { UserApplications.userId eq user }
+                .singleOrNull()
+        }?.getOrNull(UserApplications.userId)
+        // add data to db
+        if (existedUserID == null) {
+            transaction {
+                UserApplications.insert {
+                    it[UserApplications.userId] = user
+                    it[UserApplications.apps] = appsString
+                }
             }
-            it[UserApplications.apps] = sb.toString()
+        } else {
+            transaction {
+                UserApplications.update({ UserApplications.userId eq user }) { it[UserApplications.apps] = appsString }
+            }
+        }
+    }
+
+    fun getAppsForUser(user: String): ArrayList<Pair<Int, String>> {
+        checkUserIsExist(user)
+        val apps = transaction {
+            UserApplications
+                .select { UserApplications.userId eq user }
+                .singleOrNull()
+                ?.getOrNull(UserApplications.apps)
+        }
+        return if (apps != null) {
+            getApps(apps)
+        } else {
+            ArrayList()
         }
     }
 
@@ -56,13 +91,11 @@ object Db {
      * @return false, if already exist
      * */
     fun addUser(user: String): Boolean {
-        val existedUserID = try {
-            transaction { Users.select { Users.userId eq user }.single() }.getOrNull(
-                Users.userId
-            )
-        } catch (e: Exception) {
-            null
-        }
+        val existedUserID = transaction {
+            Users.select { Users.userId eq user }.singleOrNull()
+        }?.getOrNull(
+            Users.userId
+        )
         if (existedUserID == null) {
             transaction {
                 Users.insert {
@@ -81,5 +114,13 @@ object Db {
             }
         }
         return users
+    }
+
+    private fun checkUserIsExist(user: String) {
+        // check if user exist
+        transaction {
+            Users.select { Users.userId eq user }
+                .singleOrNull()
+        }?.getOrNull(Users.userId) ?: throw Exception(USER_DOESNT_EXIST)
     }
 }
