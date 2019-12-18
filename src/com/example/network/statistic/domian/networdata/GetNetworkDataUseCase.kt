@@ -13,26 +13,27 @@ class GetNetworkDataUseCase(
     private val startTime: Long,
     private val endTime: Long
 ) : UseCase<ArrayList<NetworkData>>() {
-
+    //val data = ArrayList<NetworkData>()
     override fun execute(): ArrayList<NetworkData> {
+        //getAll()
         val result = arrayListOf<NetworkData>()
         val condition = Op.build {
             (Db.NetworkData.userId eq user) and
                     (Db.NetworkData.period eq period.name) and
                     (Db.NetworkData.timestamp greaterEq startTime) and
-                    (Db.NetworkData.timestamp greaterEq endTime)
+                    (Db.NetworkData.timestamp lessEq  endTime)
         }
         transaction {
             Db.NetworkData
                 .select(condition)
                 .orderBy(Db.NetworkData.timestamp to SortOrder.ASC)
-                .forEach {
+                .forEach { row ->
                     result.add(
                         NetworkData(
                             user,
-                            it[Db.NetworkData.timestamp],
+                            row[Db.NetworkData.timestamp],
                             period,
-                            it[Db.NetworkData.data]
+                            row[Db.NetworkData.data]
                         )
                     )
                 }
