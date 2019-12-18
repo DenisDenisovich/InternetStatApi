@@ -3,8 +3,8 @@ package com.example.network.statistic.db
 import com.example.network.statistic.domian.CheckUserIsExistUseCase
 import com.example.network.statistic.domian.app.AddAppUseCase
 import com.example.network.statistic.domian.app.GetAppUseCase
-import com.example.network.statistic.domian.networkinfo.AddNetworkDataUseCase
-import com.example.network.statistic.domian.networkinfo.GetNetworkDataUseCase
+import com.example.network.statistic.domian.networdata.AddNetworkDataUseCase
+import com.example.network.statistic.domian.networdata.GetNetworkDataUseCase
 import com.example.network.statistic.domian.user.AddUserUseCase
 import com.example.network.statistic.domian.user.GetUsersUseCase
 import com.example.network.statistic.models.Application
@@ -28,6 +28,11 @@ class DbHelper {
                 Db.Users,
                 Db.UserApplications
             )
+            SchemaUtils.createMissingTablesAndColumns(
+                Db.NetworkData,
+                Db.Users,
+                Db.UserApplications
+            )
         }
     }
 
@@ -45,9 +50,11 @@ class DbHelper {
         return GetAppUseCase(user).execute()
     }
 
-    fun addNetworkData(networkData: NetworkData) {
-        CheckUserIsExistUseCase(networkData.user).execute()
-        return AddNetworkDataUseCase(networkData).execute()
+    fun addNetworkData(user: String, networkData: ArrayList<NetworkData>) {
+        CheckUserIsExistUseCase(user).execute()
+        networkData.forEach {
+            AddNetworkDataUseCase(it).execute()
+        }
     }
 
     fun getNetworkData(

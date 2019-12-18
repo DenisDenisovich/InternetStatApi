@@ -7,8 +7,16 @@ data class NetworkData(
     val data: String
 )
 
-enum class NetworkPeriod{
+enum class NetworkPeriod {
     MINUTES,
     HOUR,
-    DAY
+    DAY;
+
+    companion object {
+
+        fun isExist(period: String?): Boolean {
+            val values = NetworkPeriod.values().map { it.name }
+            return values.contains(period)
+        }
+    }
 }

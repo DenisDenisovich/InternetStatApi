@@ -1,4 +1,4 @@
-package com.example.network.statistic.domian.networkinfo
+package com.example.network.statistic.domian.networdata
 
 import com.example.network.statistic.db.Db
 import com.example.network.statistic.domian.UseCase

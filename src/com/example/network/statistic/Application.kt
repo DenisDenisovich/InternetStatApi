@@ -2,6 +2,8 @@ package com.example.network.statistic
 
 import com.example.network.statistic.db.Db
 import com.example.network.statistic.db.DbHelper
+import com.example.network.statistic.models.NetworkData
+import com.example.network.statistic.models.NetworkPeriod
 import com.example.network.statistic.models.UserApplicationResponse
 import io.ktor.application.*
 import io.ktor.response.*
@@ -11,6 +13,7 @@ import io.ktor.html.*
 import kotlinx.html.*
 import com.fasterxml.jackson.databind.*
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.ktor.jackson.*
 import io.ktor.features.*
 import io.ktor.client.*
@@ -35,7 +38,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        put("user/add") {
+        put("user") {
             try {
                 val parameters = call.request.queryParameters
                 val id = parameters["name"]
@@ -61,7 +64,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        get("user/get") {
+        get("user") {
             try {
                 call.respondText(
                     gson.toJson(db.getUsers()),
@@ -78,7 +81,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        put("user/apps") {
+        put("apps") {
             try {
                 val text = call.receiveText()
                 val userApps = gson.fromJson(text, UserApplicationResponse::class.java)
@@ -98,7 +101,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        get("user/apps") {
+        get("apps") {
             try {
                 call.request.queryParameters["name"]?.let { userId ->
                     val users = db.getUserApps(userId)
@@ -106,6 +109,80 @@ fun Application.module(testing: Boolean = false) {
                         gson.toJson(users),
                         contentType = ContentType.Text.Plain,
                         status = HttpStatusCode.OK
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respondText(
+                    e.getError(),
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.ExpectationFailed
+                )
+            }
+        }
+
+        put("networkdata") {
+            try {
+                val text = call.receiveText()
+                val networkData = gson.fromJson<ArrayList<NetworkData>>(text)
+                if (networkData != null) {
+                    val name = networkData?.getOrNull(0)?.user
+                    name?.let {
+                        db.addNetworkData(it, networkData)
+                    }
+                    call.respondText(
+                        "Success",
+                        contentType = ContentType.Text.Plain,
+                        status = HttpStatusCode.OK
+                    )
+                } else {
+                    call.respondText(
+                        "Error",
+                        contentType = ContentType.Text.Plain,
+                        status = HttpStatusCode.OK
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respondText(
+                    e.getError(),
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.ExpectationFailed
+                )
+            }
+        }
+
+        get("networkdata") {
+            try {
+                val result = arrayListOf<NetworkData>()
+                val parameters = call.request.queryParameters
+                val user = parameters["name"]
+                val period = parameters["period"]?.toUpperCase()
+                val startTime = parameters["startTime"]?.toLongOrNull()
+                val endTime = parameters["endTime"]?.toLongOrNull()
+                var errorText: String? = null
+                if (user == null) {
+                    errorText = "name not specified"
+                } else if (period == null || !NetworkPeriod.isExist(period)) {
+                    errorText = "period not specified or incorrect"
+                } else if (startTime == null) {
+                    errorText = "startTime not specified or incorrect"
+                } else if (endTime == null) {
+                    errorText = "endTime not specified or incorrect"
+                } else {
+                    result.addAll(db.getNetworkData(user, NetworkPeriod.valueOf(period), startTime, endTime))
+                }
+                if (errorText == null) {
+                    call.respondText(
+                        gson.toJson(result),
+                        contentType = ContentType.Text.Plain,
+                        status = HttpStatusCode.OK
+                    )
+                } else {
+                    call.respondText(
+                        errorText,
+                        contentType = ContentType.Text.Plain,
+                        status = HttpStatusCode.ExpectationFailed
                     )
                 }
             } catch (e: Exception) {
@@ -139,3 +216,4 @@ fun Application.module(testing: Boolean = false) {
 
 fun Exception.getError(): String = if (message == USER_DOESNT_EXIST) USER_DOESNT_EXIST else "error"
 
+inline fun <reified T> Gson.fromJson(json: String) = this.fromJson<T>(json, object: TypeToken<T>() {}.type)
