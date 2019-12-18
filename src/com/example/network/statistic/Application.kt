@@ -1,5 +1,7 @@
 package com.example.network.statistic
 
+import com.example.network.statistic.db.Db
+import com.example.network.statistic.db.DbHelper
 import com.example.network.statistic.models.UserApplicationResponse
 import io.ktor.application.*
 import io.ktor.response.*
@@ -21,6 +23,7 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+    val db = DbHelper()
     val gson = Gson()
     install(ContentNegotiation) {
         jackson {
@@ -37,7 +40,7 @@ fun Application.module(testing: Boolean = false) {
                 val parameters = call.request.queryParameters
                 val id = parameters["name"]
                 val user = "user$id"
-                val isAdded = Db.addUser(user)
+                val isAdded = db.addUser(user)
                 val existText = if (isAdded) {
                     "$user is added"
                 } else {
@@ -61,7 +64,7 @@ fun Application.module(testing: Boolean = false) {
         get("user/get") {
             try {
                 call.respondText(
-                    gson.toJson(Db.getUsers()),
+                    gson.toJson(db.getUsers()),
                     contentType = ContentType.Text.Plain,
                     status = HttpStatusCode.OK
                 )
@@ -79,7 +82,7 @@ fun Application.module(testing: Boolean = false) {
             try {
                 val text = call.receiveText()
                 val userApps = gson.fromJson(text, UserApplicationResponse::class.java)
-                Db.addApps(userApps)
+                db.addUserApps(userApps)
                 call.respondText(
                     "Success",
                     contentType = ContentType.Text.Plain,
@@ -98,7 +101,7 @@ fun Application.module(testing: Boolean = false) {
         get("user/apps") {
             try {
                 call.request.queryParameters["name"]?.let { userId ->
-                    val users = Db.getAppsForUser(userId)
+                    val users = db.getUserApps(userId)
                     call.respondText(
                         gson.toJson(users),
                         contentType = ContentType.Text.Plain,
