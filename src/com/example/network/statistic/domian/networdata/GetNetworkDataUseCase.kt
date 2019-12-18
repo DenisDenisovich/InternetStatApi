@@ -14,10 +14,7 @@ class GetNetworkDataUseCase(
     private val endTime: Long
 ) : UseCase<ArrayList<NetworkData>>() {
 
-    val data = ArrayList<NetworkData>()
-
     override fun execute(): ArrayList<NetworkData> {
-        getAll()
         val result = arrayListOf<NetworkData>()
         val condition = Op.build {
             (Db.NetworkData.userId eq user) and
@@ -43,6 +40,7 @@ class GetNetworkDataUseCase(
         return result
     }
 
+/*
     private fun getAll() {
         transaction {
             Db.NetworkData.selectAll().forEach {
@@ -57,4 +55,5 @@ class GetNetworkDataUseCase(
             }
         }
     }
+*/
 }
