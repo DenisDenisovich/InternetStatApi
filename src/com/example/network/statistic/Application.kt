@@ -1,6 +1,5 @@
 package com.example.network.statistic
 
-import com.example.network.statistic.db.Db
 import com.example.network.statistic.db.DbHelper
 import com.example.network.statistic.models.NetworkData
 import com.example.network.statistic.models.NetworkPeriod
@@ -195,6 +194,44 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
+        get("networkdata/last") {
+            try {
+                val parameters = call.request.queryParameters
+                val user = parameters["name"]
+                val period = parameters["period"]?.toUpperCase()?.toUpperCase()
+                var errorText: String? = null
+                if (user == null) {
+                    errorText = "name not specified"
+                } else if (period == null || !NetworkPeriod.isExist(period)) {
+                    errorText = "period not specified or incorrect"
+                } else {
+                    val lastTimestamp = user.let {
+                        period.let {
+                            db.getLastNetworkTimestamp(user, NetworkPeriod.valueOf(period))
+                        }
+                    }
+                    call.respondText(
+                        lastTimestamp.toString(),
+                        contentType = ContentType.Text.Plain,
+                        status = HttpStatusCode.OK
+                    )
+                }
+                if (errorText != null) {
+                    call.respondText(
+                        errorText ?: "error",
+                        contentType = ContentType.Text.Plain,
+                        status = HttpStatusCode.OK
+                    )
+                }
+            } catch (e: Exception) {
+                call.respondText(
+                    e.getError(),
+                    contentType = ContentType.Text.Plain,
+                    status = HttpStatusCode.OK
+                )
+            }
+        }
+
         get("/html-dsl") {
             call.respondHtml {
                 body {
@@ -216,4 +253,4 @@ fun Application.module(testing: Boolean = false) {
 
 fun Exception.getError(): String = if (message == USER_DOESNT_EXIST) USER_DOESNT_EXIST else "error"
 
-inline fun <reified T> Gson.fromJson(json: String) = this.fromJson<T>(json, object: TypeToken<T>() {}.type)
+inline fun <reified T> Gson.fromJson(json: String) = this.fromJson<T>(json, object : TypeToken<T>() {}.type)

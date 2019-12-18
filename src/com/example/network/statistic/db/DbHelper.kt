@@ -4,6 +4,7 @@ import com.example.network.statistic.domian.CheckUserIsExistUseCase
 import com.example.network.statistic.domian.app.AddAppUseCase
 import com.example.network.statistic.domian.app.GetAppUseCase
 import com.example.network.statistic.domian.networdata.AddNetworkDataUseCase
+import com.example.network.statistic.domian.networdata.GetLastNetworkDataUseCase
 import com.example.network.statistic.domian.networdata.GetNetworkDataUseCase
 import com.example.network.statistic.domian.user.AddUserUseCase
 import com.example.network.statistic.domian.user.GetUsersUseCase
@@ -74,5 +75,10 @@ class DbHelper {
     ): ArrayList<NetworkData> {
         CheckUserIsExistUseCase(user).execute()
         return GetNetworkDataUseCase(user, period, startTime, endTime).execute()
+    }
+
+    fun getLastNetworkTimestamp(user: String, period: NetworkPeriod): Long {
+        CheckUserIsExistUseCase(user).execute()
+        return GetLastNetworkDataUseCase(user, period).execute()
     }
 }
