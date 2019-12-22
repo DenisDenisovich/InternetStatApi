@@ -8,8 +8,6 @@ import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.http.*
-import io.ktor.html.*
-import kotlinx.html.*
 import com.fasterxml.jackson.databind.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
