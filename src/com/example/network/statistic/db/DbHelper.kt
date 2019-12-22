@@ -24,18 +24,18 @@ class DbHelper {
             user = "vdenisov_diplom", password = "Js!t7B8AG#CM5v9&"
         )
         transaction {
-/*
             SchemaUtils.drop(
                 Db.NetworkData,
                 Db.Users,
                 Db.UserApplications
             )
-*/
+/*
             SchemaUtils.create(
                 Db.NetworkData,
                 Db.Users,
                 Db.UserApplications
             )
+*/
 /*
             SchemaUtils.createMissingTablesAndColumns(
                 Db.NetworkData,
