@@ -50,11 +50,11 @@ fun Application.module(testing: Boolean = false) {
                     }
                     call.respond(HttpStatusCode.OK, AddUserResponse("HELLO, $user! $existText"))
                 } else {
-                    call.respond(HttpStatusCode.OK, Error("user is not specified"))
+                    call.respond(HttpStatusCode.OK, ErrorResponse("user is not specified"))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respond(HttpStatusCode.ExpectationFailed, Error(e.getError()))
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
         }
 
@@ -63,7 +63,7 @@ fun Application.module(testing: Boolean = false) {
                 call.respond(HttpStatusCode.OK, GetUsersResponse(db.getUsers()))
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respond(HttpStatusCode.ExpectationFailed, Error(e.getError()))
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
         }
 
@@ -72,38 +72,21 @@ fun Application.module(testing: Boolean = false) {
                 val text = call.receiveText()
                 val userApps = gson.fromJson(text, UserApplicationResponse::class.java)
                 db.addUserApps(userApps)
-                call.respondText(
-                    "Success",
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.OK
-                )
+                call.respond(HttpStatusCode.OK, SuccessResponse())
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respondText(
-                    e.getError(),
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.ExpectationFailed
-                )
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
         }
 
         get("apps") {
             try {
                 call.request.queryParameters["name"]?.let { userId ->
-                    val users = db.getUserApps(userId)
-                    call.respondText(
-                        gson.toJson(users),
-                        contentType = ContentType.Text.Plain,
-                        status = HttpStatusCode.OK
-                    )
+                    call.respond(HttpStatusCode.OK, GetUserAppsResponse(db.getUserApps(userId)))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respondText(
-                    e.getError(),
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.ExpectationFailed
-                )
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
         }
 
@@ -248,4 +231,8 @@ data class AddUserResponse(
 
 data class GetUsersResponse(val users: ArrayList<String>)
 
-data class Error(val message: String)
+data class ErrorResponse(val message: String)
+
+data class SuccessResponse(val message: String = "Success")
+
+data class GetUserAppsResponse(val apps: ArrayList<com.example.network.statistic.models.Application>)
