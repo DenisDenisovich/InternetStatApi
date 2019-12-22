@@ -151,30 +151,18 @@ fun Application.module(testing: Boolean = false) {
                 } else if (period == null || !NetworkPeriod.isExist(period)) {
                     errorText = "period not specified or incorrect"
                 } else {
-                    val lastTimestamp = user.let {
+                    val lastTimestamp: Long = user.let {
                         period.let {
                             db.getLastNetworkTimestamp(user, NetworkPeriod.valueOf(period))
                         }
                     }
-                    call.respondText(
-                        lastTimestamp.toString(),
-                        contentType = ContentType.Text.Plain,
-                        status = HttpStatusCode.OK
-                    )
+                    call.respond(HttpStatusCode.OK, GetLastNetworkResponse(lastTimestamp))
                 }
                 if (errorText != null) {
-                    call.respondText(
-                        errorText ?: "error",
-                        contentType = ContentType.Text.Plain,
-                        status = HttpStatusCode.OK
-                    )
+                    call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(errorText ?: "error"))
                 }
             } catch (e: Exception) {
-                call.respondText(
-                    e.getError(),
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.OK
-                )
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
         }
     }
@@ -197,3 +185,5 @@ data class SuccessResponse(val message: String = "Success")
 data class GetUserAppsResponse(val apps: ArrayList<com.example.network.statistic.models.Application>)
 
 data class GetUserNetworkResponse(val networkData: ArrayList<NetworkData>)
+
+data class GetLastNetworkResponse(val lasTime: Long)
