@@ -40,15 +40,18 @@ fun Application.module(testing: Boolean = false) {
         put("user") {
             try {
                 val parameters = call.request.queryParameters
-                val id = parameters["name"]
-                val user = "user$id"
-                val isAdded = db.addUser(user)
-                val existText = if (isAdded) {
-                    "$user is added"
+                val user = parameters["name"]
+                if (user != null) {
+                    val isAdded = db.addUser(user)
+                    val existText = if (isAdded) {
+                        "$user is added"
+                    } else {
+                        "$user is already exist"
+                    }
+                    call.respond(HttpStatusCode.OK, AddUserResponse("HELLO, $user! $existText"))
                 } else {
-                    "$user is already exist"
+                    call.respond(HttpStatusCode.OK, Error("user is not specified"))
                 }
-                call.respond(HttpStatusCode.OK, AddUserResponse("HELLO, $user! $existText"))
             } catch (e: Exception) {
                 e.printStackTrace()
                 call.respond(HttpStatusCode.ExpectationFailed, Error(e.getError()))
@@ -57,18 +60,10 @@ fun Application.module(testing: Boolean = false) {
 
         get("user") {
             try {
-                call.respondText(
-                    gson.toJson(db.getUsers()),
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.OK
-                )
+                call.respond(HttpStatusCode.OK, GetUsersResponse(db.getUsers()))
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respondText(
-                    "error",
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.ExpectationFailed
-                )
+                call.respond(HttpStatusCode.ExpectationFailed, Error(e.getError()))
             }
         }
 
@@ -250,5 +245,7 @@ inline fun <reified T> Gson.fromJson(json: String) = this.fromJson<T>(json, obje
 data class AddUserResponse(
     val message: String
 )
+
+data class GetUsersResponse(val users: ArrayList<String>)
 
 data class Error(val message: String)
