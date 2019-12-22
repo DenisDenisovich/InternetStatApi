@@ -48,7 +48,7 @@ fun Application.module(testing: Boolean = false) {
                     }
                     call.respond(HttpStatusCode.OK, AddUserResponse("HELLO, $user! $existText"))
                 } else {
-                    call.respond(HttpStatusCode.OK, ErrorResponse("user is not specified"))
+                    call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse("user is not specified"))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
