@@ -95,29 +95,17 @@ fun Application.module(testing: Boolean = false) {
                 val text = call.receiveText()
                 val networkData = gson.fromJson<ArrayList<NetworkData>>(text)
                 if (networkData != null) {
-                    val name = networkData?.getOrNull(0)?.user
+                    val name = networkData.getOrNull(0)?.user
                     name?.let {
                         db.addNetworkData(it, networkData)
                     }
-                    call.respondText(
-                        "Success",
-                        contentType = ContentType.Text.Plain,
-                        status = HttpStatusCode.OK
-                    )
+                    call.respond(HttpStatusCode.OK, SuccessResponse())
                 } else {
-                    call.respondText(
-                        "Error",
-                        contentType = ContentType.Text.Plain,
-                        status = HttpStatusCode.OK
-                    )
+                    call.respond(HttpStatusCode.ExpectationFailed, SuccessResponse("error"))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respondText(
-                    e.getError(),
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.ExpectationFailed
-                )
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
         }
 
@@ -142,25 +130,13 @@ fun Application.module(testing: Boolean = false) {
                     result.addAll(db.getNetworkData(user, NetworkPeriod.valueOf(period), startTime, endTime))
                 }
                 if (errorText == null) {
-                    call.respondText(
-                        gson.toJson(result),
-                        contentType = ContentType.Text.Plain,
-                        status = HttpStatusCode.OK
-                    )
+                    call.respond(HttpStatusCode.OK, GetUserNetworkResponse(result))
                 } else {
-                    call.respondText(
-                        errorText,
-                        contentType = ContentType.Text.Plain,
-                        status = HttpStatusCode.ExpectationFailed
-                    )
+                    call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(errorText))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respondText(
-                    e.getError(),
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.ExpectationFailed
-                )
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
         }
 
@@ -201,23 +177,6 @@ fun Application.module(testing: Boolean = false) {
                 )
             }
         }
-
-        get("/html-dsl") {
-            call.respondHtml {
-                body {
-                    h1 { +"HTML" }
-                    ul {
-                        for (n in 1..10) {
-                            li { +"$n" }
-                        }
-                    }
-                }
-            }
-        }
-
-        get("/json/jackson") {
-            call.respond(mapOf("hello" to "world"))
-        }
     }
 }
 
@@ -236,3 +195,5 @@ data class ErrorResponse(val message: String)
 data class SuccessResponse(val message: String = "Success")
 
 data class GetUserAppsResponse(val apps: ArrayList<com.example.network.statistic.models.Application>)
+
+data class GetUserNetworkResponse(val networkData: ArrayList<NetworkData>)
