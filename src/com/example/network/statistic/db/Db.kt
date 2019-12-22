@@ -18,6 +18,6 @@ object Db {
         val userId = varchar("user_id", 50).index()
         val timestamp = long("timestamp").index()
         val period =varchar("period", 10)
-        val data = varchar("data", 300)
+        val data = text("data")
     }
 }
