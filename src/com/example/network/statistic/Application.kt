@@ -48,18 +48,10 @@ fun Application.module(testing: Boolean = false) {
                 } else {
                     "$user is already exist"
                 }
-                call.respondText(
-                    "HELLO, $user!\n$existText",
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.OK
-                )
+                call.respond(HttpStatusCode.OK, AddUserResponse("HELLO, $user! $existText"))
             } catch (e: Exception) {
                 e.printStackTrace()
-                call.respondText(
-                    "error",
-                    contentType = ContentType.Text.Plain,
-                    status = HttpStatusCode.ExpectationFailed
-                )
+                call.respond(HttpStatusCode.ExpectationFailed, Error(e.getError()))
             }
         }
 
@@ -254,3 +246,9 @@ fun Application.module(testing: Boolean = false) {
 fun Exception.getError(): String = if (message == USER_DOESNT_EXIST) USER_DOESNT_EXIST else "error"
 
 inline fun <reified T> Gson.fromJson(json: String) = this.fromJson<T>(json, object : TypeToken<T>() {}.type)
+
+data class AddUserResponse(
+    val message: String
+)
+
+data class Error(val message: String)
