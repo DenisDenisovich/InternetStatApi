@@ -163,6 +163,10 @@ fun Application.module(testing: Boolean = false) {
                 call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
         }
+
+        put("/malware") {
+            call.respond(HttpStatusCode.OK, Malware("ok"))
+        }
     }
 }
 
@@ -185,3 +189,5 @@ data class GetUserAppsResponse(val apps: ArrayList<com.example.network.statistic
 data class GetUserNetworkResponse(val networkData: ArrayList<NetworkData>)
 
 data class GetLastNetworkResponse(val lasTime: Long)
+
+data class Malware(val text: String)
