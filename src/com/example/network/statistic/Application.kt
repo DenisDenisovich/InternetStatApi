@@ -168,11 +168,13 @@ fun Application.module(testing: Boolean = false) {
             call.respond(HttpStatusCode.OK, Malware("ok"))
         }
 
-        get("test") {
-            val users = DbHelper.getUsers()
-            val iam = users[1]
-            val aps = DbHelper.getUserApps(iam)
-            CategoryUpdater.addAppsForCheck(aps.map { it.name })
+        get("/updatecategories") {
+            DbHelper.getUsers().forEach {user ->
+                DbHelper.getUserApps(user).let { apps ->
+                    CategoryUpdater.addAppsForCheck(apps.map { it.name })
+                }
+            }
+            call.respond(HttpStatusCode.OK, SuccessResponse())
         }
     }
 }
