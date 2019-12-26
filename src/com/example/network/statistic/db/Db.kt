@@ -1,5 +1,6 @@
 package com.example.network.statistic.db
 
+import com.example.network.statistic.db.Db.UserApplications.primaryKey
 import org.jetbrains.exposed.sql.*
 
 object Db {
@@ -19,5 +20,10 @@ object Db {
         val timestamp = long("timestamp").index()
         val period =varchar("period", 10)
         val data = text("data")
+    }
+
+    object AppCategory: Table() {
+        val app = varchar("app", 100).primaryKey()
+        val category = varchar("category", 50)
     }
 }

@@ -1,6 +1,7 @@
 package com.example.network.statistic
 
 import com.example.network.statistic.db.DbHelper
+import com.example.network.statistic.domian.category.CategoryUpdater
 import com.example.network.statistic.models.NetworkData
 import com.example.network.statistic.models.NetworkPeriod
 import com.example.network.statistic.models.UserApplicationResponse
@@ -23,7 +24,6 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
-    val db = DbHelper()
     val gson = Gson()
     install(ContentNegotiation) {
         jackson {
@@ -40,7 +40,7 @@ fun Application.module(testing: Boolean = false) {
                 val parameters = call.request.queryParameters
                 val user = parameters["name"]
                 if (user != null) {
-                    val isAdded = db.addUser(user)
+                    val isAdded = DbHelper.addUser(user)
                     val existText = if (isAdded) {
                         "$user is added"
                     } else {
@@ -58,7 +58,7 @@ fun Application.module(testing: Boolean = false) {
 
         get("user") {
             try {
-                call.respond(HttpStatusCode.OK, GetUsersResponse(db.getUsers()))
+                call.respond(HttpStatusCode.OK, GetUsersResponse(DbHelper.getUsers()))
             } catch (e: Exception) {
                 e.printStackTrace()
                 call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
@@ -69,7 +69,7 @@ fun Application.module(testing: Boolean = false) {
             try {
                 val text = call.receiveText()
                 val userApps = gson.fromJson(text, UserApplicationResponse::class.java)
-                db.addUserApps(userApps)
+                DbHelper.addUserApps(userApps)
                 call.respond(HttpStatusCode.OK, SuccessResponse())
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -80,7 +80,7 @@ fun Application.module(testing: Boolean = false) {
         get("apps") {
             try {
                 call.request.queryParameters["name"]?.let { userId ->
-                    call.respond(HttpStatusCode.OK, GetUserAppsResponse(db.getUserApps(userId)))
+                    call.respond(HttpStatusCode.OK, GetUserAppsResponse(DbHelper.getUserApps(userId)))
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -95,7 +95,7 @@ fun Application.module(testing: Boolean = false) {
                 if (networkData != null) {
                     val name = networkData.getOrNull(0)?.user
                     name?.let {
-                        db.addNetworkData(it, networkData)
+                        DbHelper.addNetworkData(it, networkData)
                     }
                     call.respond(HttpStatusCode.OK, SuccessResponse())
                 } else {
@@ -125,7 +125,7 @@ fun Application.module(testing: Boolean = false) {
                 } else if (endTime == null) {
                     errorText = "endTime not specified or incorrect"
                 } else {
-                    result.addAll(db.getNetworkData(user, NetworkPeriod.valueOf(period), startTime, endTime))
+                    result.addAll(DbHelper.getNetworkData(user, NetworkPeriod.valueOf(period), startTime, endTime))
                 }
                 if (errorText == null) {
                     call.respond(HttpStatusCode.OK, GetUserNetworkResponse(result))
@@ -151,7 +151,7 @@ fun Application.module(testing: Boolean = false) {
                 } else {
                     val lastTimestamp: Long = user.let {
                         period.let {
-                            db.getLastNetworkTimestamp(user, NetworkPeriod.valueOf(period))
+                            DbHelper.getLastNetworkTimestamp(user, NetworkPeriod.valueOf(period))
                         }
                     }
                     call.respond(HttpStatusCode.OK, GetLastNetworkResponse(lastTimestamp))
@@ -166,6 +166,13 @@ fun Application.module(testing: Boolean = false) {
 
         put("/malware") {
             call.respond(HttpStatusCode.OK, Malware("ok"))
+        }
+
+        get("test") {
+            val users = DbHelper.getUsers()
+            val iam = users[1]
+            val aps = DbHelper.getUserApps(iam)
+            CategoryUpdater.addAppsForCheck(aps.map { it.name })
         }
     }
 }

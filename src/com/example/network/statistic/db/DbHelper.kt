@@ -14,9 +14,11 @@ import com.example.network.statistic.models.NetworkPeriod
 import com.example.network.statistic.models.UserApplicationResponse
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class DbHelper {
+object DbHelper {
 
     init {
         Database.connect(
@@ -24,25 +26,27 @@ class DbHelper {
             user = "vdenisov_diplom", password = "Js!t7B8AG#CM5v9&"
         )
         transaction {
+            /*
+                        SchemaUtils.drop(
+                            Db.NetworkData,
+                            Db.Users,
+                            Db.UserApplications
+                        )
+            */
 /*
-            SchemaUtils.drop(
-                Db.NetworkData,
-                Db.Users,
-                Db.UserApplications
-            )
-*/
             SchemaUtils.create(
                 Db.NetworkData,
                 Db.Users,
-                Db.UserApplications
-            )
-/*
-            SchemaUtils.createMissingTablesAndColumns(
-                Db.NetworkData,
-                Db.Users,
+                Db.UserApplications,
                 Db.UserApplications
             )
 */
+            SchemaUtils.createMissingTablesAndColumns(
+                Db.NetworkData,
+                Db.Users,
+                Db.UserApplications,
+                Db.AppCategory
+            )
         }
     }
 
@@ -81,4 +85,23 @@ class DbHelper {
         CheckUserIsExistUseCase(user).execute()
         return GetLastNetworkDataUseCase(user, period).execute()
     }
+
+    fun categoryIsExist(app: String): Boolean {
+        val existedApp = transaction {
+            Db.AppCategory
+                .select { Db.AppCategory.app eq app }
+                .singleOrNull()
+                ?.getOrNull(Db.AppCategory.app)
+        }
+        return existedApp != null
+    }
+
+    @Synchronized
+    fun getCategory(app: String): String? =
+        transaction {
+            Db.AppCategory
+                .select { Db.AppCategory.app eq app }
+                .singleOrNull()
+                ?.getOrNull(Db.AppCategory.category)
+        }
 }
