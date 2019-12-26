@@ -49,7 +49,7 @@ object CategoryUpdater {
     fun updateAllCategories() {
         coroutineScope.launch {
             DbHelper.getUsers().forEach {user ->
-                val apps = DbHelper.getUserApps(user, false).map { it.name }
+                val apps = DbHelper.getUserApps(user.id, false).map { it.name }
                 addAppsForCheck(apps)
             }
         }

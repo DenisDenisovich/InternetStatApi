@@ -7,6 +7,7 @@ object Db {
 
     object Users : Table() {
         val userId = varchar("user_id", 50).primaryKey()
+        val info = varchar("info", 150).nullable()
     }
 
     object UserApplications : Table() {

@@ -4,6 +4,7 @@ import com.example.network.statistic.db.DbHelper
 import com.example.network.statistic.domian.category.CategoryUpdater
 import com.example.network.statistic.models.NetworkData
 import com.example.network.statistic.models.NetworkPeriod
+import com.example.network.statistic.models.User
 import com.example.network.statistic.models.UserApplicationResponse
 import io.ktor.application.*
 import io.ktor.response.*
@@ -37,8 +38,8 @@ fun Application.module(testing: Boolean = false) {
     routing {
         put("user") {
             try {
-                val parameters = call.request.queryParameters
-                val user = parameters["name"]
+                val text = call.receiveText()
+                val user = gson.fromJson(text, User::class.java)
                 if (user != null) {
                     val isAdded = DbHelper.addUser(user)
                     val existText = if (isAdded) {
@@ -183,7 +184,7 @@ data class AddUserResponse(
     val message: String
 )
 
-data class GetUsersResponse(val users: ArrayList<String>)
+data class GetUsersResponse(val users: ArrayList<User>)
 
 data class ErrorResponse(val message: String)
 

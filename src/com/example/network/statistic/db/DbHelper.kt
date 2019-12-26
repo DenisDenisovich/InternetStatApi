@@ -8,13 +8,9 @@ import com.example.network.statistic.domian.networdata.GetLastNetworkDataUseCase
 import com.example.network.statistic.domian.networdata.GetNetworkDataUseCase
 import com.example.network.statistic.domian.user.AddUserUseCase
 import com.example.network.statistic.domian.user.GetUsersUseCase
-import com.example.network.statistic.models.Application
-import com.example.network.statistic.models.NetworkData
-import com.example.network.statistic.models.NetworkPeriod
-import com.example.network.statistic.models.UserApplicationResponse
+import com.example.network.statistic.models.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -50,9 +46,9 @@ object DbHelper {
         }
     }
 
-    fun addUser(user: String): Boolean = AddUserUseCase(user).execute()
+    fun addUser(user: User): Boolean = AddUserUseCase(user).execute()
 
-    fun getUsers(): ArrayList<String> = GetUsersUseCase().execute()
+    fun getUsers(): ArrayList<User> = GetUsersUseCase().execute()
 
     fun addUserApps(userApps: UserApplicationResponse) {
         CheckUserIsExistUseCase(userApps.user).execute()
