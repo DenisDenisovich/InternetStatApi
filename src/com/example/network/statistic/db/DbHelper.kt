@@ -33,20 +33,20 @@ object DbHelper {
                             Db.UserApplications
                         )
             */
-/*
             SchemaUtils.create(
                 Db.NetworkData,
                 Db.Users,
                 Db.UserApplications,
                 Db.UserApplications
             )
-*/
+/*
             SchemaUtils.createMissingTablesAndColumns(
                 Db.NetworkData,
                 Db.Users,
                 Db.UserApplications,
                 Db.AppCategory
             )
+*/
         }
     }
 
