@@ -169,11 +169,7 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/updatecategories") {
-            DbHelper.getUsers().forEach {user ->
-                DbHelper.getUserApps(user).let { apps ->
-                    CategoryUpdater.addAppsForCheck(apps.map { it.name })
-                }
-            }
+            CategoryUpdater.updateAllCategories()
             call.respond(HttpStatusCode.OK, SuccessResponse())
         }
     }

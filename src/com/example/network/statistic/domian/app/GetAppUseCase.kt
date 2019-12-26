@@ -7,7 +7,7 @@ import com.example.network.statistic.models.Application
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class GetAppUseCase(private val user: String): UseCase<ArrayList<Application>>() {
+class GetAppUseCase(private val user: String, val withCategories: Boolean = true): UseCase<ArrayList<Application>>() {
 
     override fun execute(): ArrayList<Application> {
         val apps = transaction {
@@ -18,8 +18,10 @@ class GetAppUseCase(private val user: String): UseCase<ArrayList<Application>>()
         }
         return if (apps != null) {
             val result = gson.fromJson<ArrayList<Application>>(apps)
-            result.forEach {
-                it.category = DbHelper.getCategory(it.name) ?: "null"
+            if (withCategories) {
+                result.forEach {
+                    it.category = DbHelper.getCategory(it.name) ?: "null"
+                }
             }
             result
         } else {

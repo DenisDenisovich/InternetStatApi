@@ -45,6 +45,16 @@ object CategoryUpdater {
         workerInProgress = false
     }
 
+    @Synchronized
+    fun updateAllCategories() {
+        coroutineScope.launch {
+            DbHelper.getUsers().forEach {user ->
+                val apps = DbHelper.getUserApps(user, false).map { it.name }
+                addAppsForCheck(apps)
+            }
+        }
+    }
+
     class CategoryCheckRunnable(val apps: List<String>) : Runnable {
         override fun run() {
             runBlocking {

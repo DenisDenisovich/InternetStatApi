@@ -59,9 +59,9 @@ object DbHelper {
         AddAppUseCase(userApps).execute()
     }
 
-    fun getUserApps(user: String): ArrayList<Application> {
+    fun getUserApps(user: String, withCategories: Boolean = true): ArrayList<Application> {
         CheckUserIsExistUseCase(user).execute()
-        return GetAppUseCase(user).execute()
+        return GetAppUseCase(user, withCategories).execute()
     }
 
     fun addNetworkData(user: String, networkData: ArrayList<NetworkData>) {
