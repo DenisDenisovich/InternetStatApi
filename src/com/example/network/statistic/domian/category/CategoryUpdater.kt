@@ -27,6 +27,7 @@ object CategoryUpdater {
 
     @Synchronized
     fun addAppsForCheck(apps: List<String>) {
+        if (apps.isEmpty()) return
         queueRunnable.add(CategoryCheckRunnable(apps))
     }
 

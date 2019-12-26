@@ -1,7 +1,9 @@
 package com.example.network.statistic.domian.app
 
 import com.example.network.statistic.db.Db
+import com.example.network.statistic.db.DbHelper
 import com.example.network.statistic.domian.UseCase
+import com.example.network.statistic.domian.category.CategoryUpdater
 import com.example.network.statistic.models.UserApplicationResponse
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -26,10 +28,24 @@ class AddAppUseCase(private val userApps: UserApplicationResponse): UseCase<Unit
                     it[apps] = appsString
                 }
             }
+            CategoryUpdater.addAppsForCheck(userApps.apps.map { it.name })
         } else {
+            updateNewUsersAppCategory()
             transaction {
                 Db.UserApplications.update({ Db.UserApplications.userId eq userApps.user }) { it[apps] = appsString }
             }
+
         }
+    }
+
+    private fun updateNewUsersAppCategory() {
+        val currentUserApps = GetAppUseCase(userApps.user).execute()
+        val newUserApps = arrayListOf<String>()
+        userApps.apps.forEach {
+            if (!currentUserApps.contains(it)) {
+                newUserApps.add(it.name)
+            }
+        }
+        CategoryUpdater.addAppsForCheck(newUserApps)
     }
 }
