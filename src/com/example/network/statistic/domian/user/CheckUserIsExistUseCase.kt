@@ -1,7 +1,8 @@
-package com.example.network.statistic.domian
+package com.example.network.statistic.domian.user
 
 import com.example.network.statistic.USER_DOESNT_EXIST
 import com.example.network.statistic.db.Db
+import com.example.network.statistic.domian.UseCase
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.lang.Exception
