@@ -2,6 +2,7 @@ package com.example.network.statistic
 
 import com.example.network.statistic.db.DbHelper
 import com.example.network.statistic.domian.category.CategoryUpdater
+import com.example.network.statistic.domian.genstat.AddMalwareStatUseCase
 import com.example.network.statistic.models.NetworkData
 import com.example.network.statistic.models.NetworkPeriod
 import com.example.network.statistic.models.User
@@ -165,8 +166,17 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        put("/malware") {
-            call.respond(HttpStatusCode.OK, Malware("ok"))
+        get("/malware") {
+            try {
+                val parameters = call.request.queryParameters
+                val user = parameters["name"]
+                user?.let {
+                    DbHelper.getMalware(it)
+                }
+                call.respond(HttpStatusCode.OK, SuccessResponse())
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
+            }
         }
 
         get("/updatecategories") {

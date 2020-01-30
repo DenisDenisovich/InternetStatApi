@@ -4,7 +4,7 @@ data class NetworkData(
     val user: String,
     val timestamp: Long,
     val period: NetworkPeriod,
-    val data: String
+    var data: String
 )
 
 enum class NetworkPeriod {

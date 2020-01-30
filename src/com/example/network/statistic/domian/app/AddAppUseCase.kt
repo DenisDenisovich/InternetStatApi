@@ -32,9 +32,10 @@ class AddAppUseCase(private val userApps: UserApplicationResponse): UseCase<Unit
         } else {
             updateNewUsersAppCategory()
             transaction {
-                Db.UserApplications.update({ Db.UserApplications.userId eq userApps.user }) { it[apps] = appsString }
+                Db.UserApplications.update({ Db.UserApplications.userId eq userApps.user }) {
+                    it[apps] = appsString
+                }
             }
-
         }
     }
 

@@ -26,7 +26,6 @@ class CategoryWorker {
                             result = UNDEFINED
                         }
                     } else {
-                        // TODO log event to metric there
                         result = null
                     }
                     result

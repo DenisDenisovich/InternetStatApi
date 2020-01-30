@@ -3,6 +3,8 @@ package com.example.network.statistic.db
 import com.example.network.statistic.domian.CheckUserIsExistUseCase
 import com.example.network.statistic.domian.app.AddAppUseCase
 import com.example.network.statistic.domian.app.GetAppUseCase
+import com.example.network.statistic.domian.genstat.AddMalwareStatUseCase
+import com.example.network.statistic.domian.malwaredetect.AddMalwareSearchResultUseCase
 import com.example.network.statistic.domian.networdata.AddNetworkDataUseCase
 import com.example.network.statistic.domian.networdata.GetLastNetworkDataUseCase
 import com.example.network.statistic.domian.networdata.GetNetworkDataUseCase
@@ -22,25 +24,19 @@ object DbHelper {
             user = "vdenisov_diplom", password = "Js!t7B8AG#CM5v9&"
         )
         transaction {
-            /*
-                        SchemaUtils.drop(
-                            Db.NetworkData,
-                            Db.Users,
-                            Db.UserApplications
-                        )
-            */
             SchemaUtils.create(
                 Db.NetworkData,
                 Db.Users,
                 Db.UserApplications,
-                Db.UserApplications
+                Db.AppMalware2
             )
 /*
             SchemaUtils.createMissingTablesAndColumns(
                 Db.NetworkData,
                 Db.Users,
                 Db.UserApplications,
-                Db.AppCategory
+                Db.AppCategory,
+                Db.AppMalware2
             )
 */
         }
@@ -100,4 +96,9 @@ object DbHelper {
                 .singleOrNull()
                 ?.getOrNull(Db.AppCategory.category)
         }
+
+    fun getMalware(user: String) {
+        //CheckUserIsExistUseCase(user).execute()
+        AddMalwareSearchResultUseCase(user, arrayListOf()).execute()
+    }
 }

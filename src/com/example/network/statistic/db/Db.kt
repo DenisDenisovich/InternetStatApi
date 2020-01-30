@@ -1,6 +1,5 @@
 package com.example.network.statistic.db
 
-import com.example.network.statistic.db.Db.UserApplications.primaryKey
 import org.jetbrains.exposed.sql.*
 
 object Db {
@@ -26,5 +25,12 @@ object Db {
     object AppCategory: Table() {
         val app = varchar("app", 100).primaryKey()
         val category = varchar("category", 50)
+    }
+
+    object AppMalware2: Table() {
+        val id = integer("id").autoIncrement().primaryKey() // Column<String>
+        val userId = varchar("user_id", 50).index()
+        val timestamp = long("timestamp").index()
+        val data = text("data")
     }
 }

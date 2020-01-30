@@ -25,7 +25,9 @@ class AddCategoryUseCase(val newApp: String, val findedCategory: String): UseCas
             }
         } else {
             transaction {
-                Db.AppCategory.update({ Db.AppCategory.app eq newApp }) { it[category] = findedCategory }
+                Db.AppCategory.update({ Db.AppCategory.app eq newApp }) {
+                    it[category] = findedCategory
+                }
             }
         }
     }
