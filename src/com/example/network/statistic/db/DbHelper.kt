@@ -3,8 +3,8 @@ package com.example.network.statistic.db
 import com.example.network.statistic.domian.CheckUserIsExistUseCase
 import com.example.network.statistic.domian.app.AddAppUseCase
 import com.example.network.statistic.domian.app.GetAppUseCase
-import com.example.network.statistic.domian.genstat.AddMalwareStatUseCase
-import com.example.network.statistic.domian.malwaredetect.AddMalwareSearchResultUseCase
+import com.example.network.statistic.domian.malwaredetect.AddMalwareUseCase
+import com.example.network.statistic.domian.malwaredetect.GetMalwareUseCase
 import com.example.network.statistic.domian.networdata.AddNetworkDataUseCase
 import com.example.network.statistic.domian.networdata.GetLastNetworkDataUseCase
 import com.example.network.statistic.domian.networdata.GetNetworkDataUseCase
@@ -97,8 +97,13 @@ object DbHelper {
                 ?.getOrNull(Db.AppCategory.category)
         }
 
-    fun getMalware(user: String) {
-        //CheckUserIsExistUseCase(user).execute()
-        AddMalwareSearchResultUseCase(user, arrayListOf()).execute()
+    fun addMalware(user: String, apps: ArrayList<MalwareResult>) {
+        CheckUserIsExistUseCase(user).execute()
+        AddMalwareUseCase(user, apps).execute()
+    }
+
+    fun getMalware(user: String, time: Long): ArrayList<String> {
+        CheckUserIsExistUseCase(user).execute()
+        return GetMalwareUseCase(user, time).execute()
     }
 }

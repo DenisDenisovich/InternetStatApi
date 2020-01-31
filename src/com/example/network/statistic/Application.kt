@@ -2,8 +2,7 @@ package com.example.network.statistic
 
 import com.example.network.statistic.db.DbHelper
 import com.example.network.statistic.domian.category.CategoryUpdater
-import com.example.network.statistic.domian.genstat.AddMalwareStatUseCase
-import com.example.network.statistic.models.NetworkData
+import com.example.network.statistic.models.*
 import com.example.network.statistic.models.NetworkPeriod
 import com.example.network.statistic.models.User
 import com.example.network.statistic.models.UserApplicationResponse
@@ -14,6 +13,7 @@ import io.ktor.http.*
 import com.fasterxml.jackson.databind.*
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.ktor.application.Application
 import io.ktor.jackson.*
 import io.ktor.features.*
 import io.ktor.client.*
@@ -166,14 +166,32 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
+        put("/malware") {
+            try {
+                val text = call.receiveText()
+                val malw = gson.fromJson(text, MalwareRequest::class.java)
+                val malwApps = arrayListOf<MalwareResult>()
+                malw.apps.forEach {
+                    malwApps.add(MalwareResult(it, malw.time))
+                }
+                DbHelper.addMalware(malw.user, malwApps)
+                call.respond(HttpStatusCode.OK, SuccessResponse())
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
+            }
+        }
+
         get("/malware") {
             try {
                 val parameters = call.request.queryParameters
                 val user = parameters["name"]
-                user?.let {
-                    DbHelper.getMalware(it)
+                val time = parameters["time"]?.toLongOrNull()
+                if (user != null && time != null) {
+                    val apps = DbHelper.getMalware(user, time)
+                    call.respond(HttpStatusCode.OK, Malware(apps))
+                } else {
+                    call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse("invalid data"))
                 }
-                call.respond(HttpStatusCode.OK, SuccessResponse())
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
             }
@@ -206,4 +224,4 @@ data class GetUserNetworkResponse(val networkData: ArrayList<NetworkData>)
 
 data class GetLastNetworkResponse(val lasTime: Long)
 
-data class Malware(val text: String)
+data class Malware(val apps: ArrayList<String>)
