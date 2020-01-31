@@ -4,6 +4,7 @@ import com.example.network.statistic.domian.CheckUserIsExistUseCase
 import com.example.network.statistic.domian.app.AddAppUseCase
 import com.example.network.statistic.domian.app.GetAppUseCase
 import com.example.network.statistic.domian.malwaredetect.AddMalwareUseCase
+import com.example.network.statistic.domian.malwaredetect.GetAllMalwareUseCase
 import com.example.network.statistic.domian.malwaredetect.GetMalwareUseCase
 import com.example.network.statistic.domian.networdata.AddNetworkDataUseCase
 import com.example.network.statistic.domian.networdata.GetLastNetworkDataUseCase
@@ -11,6 +12,8 @@ import com.example.network.statistic.domian.networdata.GetNetworkDataUseCase
 import com.example.network.statistic.domian.user.AddUserUseCase
 import com.example.network.statistic.domian.user.GetUsersUseCase
 import com.example.network.statistic.models.*
+import com.example.network.statistic.models.malware.MalwareRequest
+import com.example.network.statistic.models.malware.MalwareResult
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.select
@@ -105,5 +108,10 @@ object DbHelper {
     fun getMalware(user: String, time: Long): ArrayList<String> {
         CheckUserIsExistUseCase(user).execute()
         return GetMalwareUseCase(user, time).execute()
+    }
+
+    fun getMalware(user: String): ArrayList<MalwareRequest> {
+        CheckUserIsExistUseCase(user).execute()
+        return GetAllMalwareUseCase(user).execute()
     }
 }

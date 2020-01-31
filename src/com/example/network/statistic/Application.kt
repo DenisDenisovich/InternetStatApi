@@ -6,6 +6,8 @@ import com.example.network.statistic.models.*
 import com.example.network.statistic.models.NetworkPeriod
 import com.example.network.statistic.models.User
 import com.example.network.statistic.models.UserApplicationResponse
+import com.example.network.statistic.models.malware.MalwareRequest
+import com.example.network.statistic.models.malware.MalwareResult
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -172,7 +174,12 @@ fun Application.module(testing: Boolean = false) {
                 val malw = gson.fromJson(text, MalwareRequest::class.java)
                 val malwApps = arrayListOf<MalwareResult>()
                 malw.apps.forEach {
-                    malwApps.add(MalwareResult(it, malw.time))
+                    malwApps.add(
+                        MalwareResult(
+                            it,
+                            malw.time
+                        )
+                    )
                 }
                 DbHelper.addMalware(malw.user, malwApps)
                 call.respond(HttpStatusCode.OK, SuccessResponse())
@@ -189,6 +196,21 @@ fun Application.module(testing: Boolean = false) {
                 if (user != null && time != null) {
                     val apps = DbHelper.getMalware(user, time)
                     call.respond(HttpStatusCode.OK, Malware(apps))
+                } else {
+                    call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse("invalid data"))
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse(e.getError()))
+            }
+        }
+
+        get("/malwareall") {
+            try {
+                val parameters = call.request.queryParameters
+                val user = parameters["name"]
+                if (user != null) {
+                    val apps = DbHelper.getMalware(user)
+                    call.respond(HttpStatusCode.OK, ArrayList<MalwareRequest>(apps))
                 } else {
                     call.respond(HttpStatusCode.ExpectationFailed, ErrorResponse("invalid data"))
                 }
