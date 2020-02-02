@@ -31,6 +31,16 @@ object CategoryUpdater {
         queueRunnable.add(CategoryCheckRunnable(apps))
     }
 
+    @Synchronized
+    fun updateAllCategories() {
+        coroutineScope.launch {
+            DbHelper.getUsers().forEach {user ->
+                val apps = DbHelper.getUserApps(user.id, false).map { it.name }
+                addAppsForCheck(apps)
+            }
+        }
+    }
+
     private suspend fun startWorker() {
         workerInProgress = true
         while (queue.size != 0) {
@@ -43,16 +53,6 @@ object CategoryUpdater {
             }
         }
         workerInProgress = false
-    }
-
-    @Synchronized
-    fun updateAllCategories() {
-        coroutineScope.launch {
-            DbHelper.getUsers().forEach {user ->
-                val apps = DbHelper.getUserApps(user.id, false).map { it.name }
-                addAppsForCheck(apps)
-            }
-        }
     }
 
     class CategoryCheckRunnable(val apps: List<String>) : Runnable {

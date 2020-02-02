@@ -1,6 +1,6 @@
 package com.example.network.statistic.db
 
-import com.example.network.statistic.domian.CheckUserIsExistUseCase
+import com.example.network.statistic.domian.user.CheckUserIsExistUseCase
 import com.example.network.statistic.domian.app.AddAppUseCase
 import com.example.network.statistic.domian.app.GetAppUseCase
 import com.example.network.statistic.domian.malwaredetect.AddMalwareUseCase
